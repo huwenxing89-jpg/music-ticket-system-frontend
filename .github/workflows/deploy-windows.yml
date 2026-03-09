@@ -42,11 +42,8 @@ jobs:
           # 安装 sshpass 用于密码认证
           sudo apt-get update && sudo apt-get install -y sshpass
 
-          # 将 Windows 路径转换为正斜杠格式
-          WIN_PATH=$(echo "$DEPLOY_PATH" | sed 's/\\/\//g' | sed 's/C:/\/c/')
-
-          # 清空目标目录（使用 PowerShell）
-          sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "Remove-Item -Recurse -Force '${DEPLOY_PATH}\*' -ErrorAction SilentlyContinue"
+          # 清空目标目录（使用 PowerShell 命令）
+          sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "powershell -Command \"Remove-Item -Recurse -Force '${DEPLOY_PATH}\*' -ErrorAction SilentlyContinue\""
 
           # 使用 SCP 复制文件到 Windows Server
           sshpass -p "$DEPLOY_PASSWORD" scp -o StrictHostKeyChecking=no -r dist/* ${DEPLOY_USER}@${DEPLOY_SERVER}:"${DEPLOY_PATH}/"
