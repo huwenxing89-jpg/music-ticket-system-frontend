@@ -1,0 +1,74 @@
+name: Deploy to Windows Server
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build project
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to Windows Server
+        env:
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH_PRODUCTION }}
+        run: |
+          # 安装 sshpass 用于密码认证
+          sudo apt-get update && sudo apt-get install -y sshpass
+
+          # 安装 rsync
+          sudo apt-get install -y rsync
+
+          # 使用密码复制 dist 目录到服务器
+          sshpass -p "$DEPLOY_PASSWORD" rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            dist/ \
+            ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+
+      - name: Health Check
+        env:
+          HEALTH_URL: ${{ secrets.HEALTH_URL_PRODUCTION }}
+        run: |
+          MAX_RETRIES=10
+          RETRY_INTERVAL=10
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
+
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "健康检查通过 (HTTP $HTTP_CODE)"
+              exit 0
+            fi
+
+            echo "尝试 $i/$MAX_RETRIES: HTTP $HTTP_CODE，重试中..."
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "健康检查失败"
+          exit 1
