@@ -58,22 +58,12 @@ jobs:
 
       - name: Health Check
         env:
-          HEALTH_URL: ${{ secrets.HEALTH_URL_PRODUCTION }}
+          DEPLOY_SERVER: ${{ secrets.DEPLOY_SERVER }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH_PRODUCTION }}
         run: |
-          MAX_RETRIES=10
-          RETRY_INTERVAL=10
+          echo "检查部署状态..."
 
-          for i in $(seq 1 $MAX_RETRIES); do
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
-
-            if [ "$HTTP_CODE" = "200" ]; then
-              echo "健康检查通过 (HTTP $HTTP_CODE)"
-              exit 0
-            fi
-
-            echo "尝试 $i/$MAX_RETRIES: HTTP $HTTP_CODE，重试中..."
-            sleep $RETRY_INTERVAL
-          done
-
-          echo "健康检查失败"
-          exit 1
+          # 通过 SSH 检查文件是否成功部署
+          sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "powershell -Command \"if (Test-Path '${DEPLOY_PATH}\index.html') { Write-Host '✅ 部署成功：index.html 存在'; exit 0 } else { Write-Host '❌ 部署失败：index.html 不存在'; exit 1 }\""
