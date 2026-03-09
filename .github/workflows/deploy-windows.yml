@@ -42,14 +42,14 @@ jobs:
           # 安装 sshpass 用于密码认证
           sudo apt-get update && sudo apt-get install -y sshpass
 
-          # 安装 rsync
-          sudo apt-get install -y rsync
+          # 将 Windows 路径转换为正斜杠格式
+          WIN_PATH=$(echo "$DEPLOY_PATH" | sed 's/\\/\//g' | sed 's/C:/\/c/')
 
-          # 使用密码复制 dist 目录到服务器
-          sshpass -p "$DEPLOY_PASSWORD" rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no" \
-            dist/ \
-            ${DEPLOY_USER}@${DEPLOY_SERVER}:${DEPLOY_PATH}/
+          # 清空目标目录（使用 PowerShell）
+          sshpass -p "$DEPLOY_PASSWORD" ssh -o StrictHostKeyChecking=no ${DEPLOY_USER}@${DEPLOY_SERVER} "Remove-Item -Recurse -Force '${DEPLOY_PATH}\*' -ErrorAction SilentlyContinue"
+
+          # 使用 SCP 复制文件到 Windows Server
+          sshpass -p "$DEPLOY_PASSWORD" scp -o StrictHostKeyChecking=no -r dist/* ${DEPLOY_USER}@${DEPLOY_SERVER}:"${DEPLOY_PATH}/"
 
       - name: Health Check
         env:
