@@ -69,6 +69,17 @@
         <el-table-column prop="showName" label="剧目名称" min-width="180" />
         <el-table-column prop="theaterName" label="剧院" min-width="150" />
         <el-table-column prop="showTime" label="演出时间" width="180" />
+        <el-table-column label="票价" width="220">
+          <template #default="{ row }">
+            <div class="price-tags">
+              <el-tag v-if="row.vipPrice" size="small" type="warning">VIP: ¥{{ row.vipPrice }}</el-tag>
+              <el-tag v-if="row.normalPrice" size="small" type="primary">普通: ¥{{ row.normalPrice }}</el-tag>
+              <el-tag v-if="row.studentPrice" size="small" type="success">学生: ¥{{ row.studentPrice }}</el-tag>
+              <el-tag v-if="row.discountPrice" size="small" type="info">优惠: ¥{{ row.discountPrice }}</el-tag>
+              <span v-if="!row.vipPrice && !row.normalPrice && !row.studentPrice && !row.discountPrice" class="no-price">-</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="座位情况" width="200">
           <template #default="{ row }">
             <div class="seat-info">
@@ -220,60 +231,64 @@
           <div class="price-inputs" v-if="editForm.priceTypes.length > 0" style="margin-top: 15px;">
             <el-row :gutter="10">
               <el-col :span="12" v-if="editForm.priceTypes.includes('vip')">
-                <el-input-number
-                  v-model="editForm.vipPrice"
-                  :min="0"
-                  :max="9999"
-                  :precision="2"
-                  :step="10"
-                  placeholder="VIP票价"
-                  controls-position="right"
-                  style="width: 100%"
-                >
-                  <template #prepend>VIP票</template>
-                </el-input-number>
+                <div class="price-item">
+                  <label class="price-label">VIP票价</label>
+                  <el-input-number
+                    v-model="editForm.vipPrice"
+                    :min="0"
+                    :max="9999"
+                    :precision="2"
+                    :step="10"
+                    placeholder="请输入VIP票价"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
               </el-col>
               <el-col :span="12" v-if="editForm.priceTypes.includes('normal')">
-                <el-input-number
-                  v-model="editForm.normalPrice"
-                  :min="0"
-                  :max="9999"
-                  :precision="2"
-                  :step="10"
-                  placeholder="普通票价"
-                  controls-position="right"
-                  style="width: 100%"
-                >
-                  <template #prepend>普通票</template>
-                </el-input-number>
+                <div class="price-item">
+                  <label class="price-label">普通票价</label>
+                  <el-input-number
+                    v-model="editForm.normalPrice"
+                    :min="0"
+                    :max="9999"
+                    :precision="2"
+                    :step="10"
+                    placeholder="请输入普通票价"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
               </el-col>
               <el-col :span="12" v-if="editForm.priceTypes.includes('student')">
-                <el-input-number
-                  v-model="editForm.studentPrice"
-                  :min="0"
-                  :max="9999"
-                  :precision="2"
-                  :step="10"
-                  placeholder="学生票价"
-                  controls-position="right"
-                  style="width: 100%"
-                >
-                  <template #prepend>学生票</template>
-                </el-input-number>
+                <div class="price-item">
+                  <label class="price-label">学生票价</label>
+                  <el-input-number
+                    v-model="editForm.studentPrice"
+                    :min="0"
+                    :max="9999"
+                    :precision="2"
+                    :step="10"
+                    placeholder="请输入学生票价"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
               </el-col>
               <el-col :span="12" v-if="editForm.priceTypes.includes('discount')">
-                <el-input-number
-                  v-model="editForm.discountPrice"
-                  :min="0"
-                  :max="9999"
-                  :precision="2"
-                  :step="10"
-                  placeholder="优惠票价"
-                  controls-position="right"
-                  style="width: 100%"
-                >
-                  <template #prepend>优惠票</template>
-                </el-input-number>
+                <div class="price-item">
+                  <label class="price-label">优惠票价</label>
+                  <el-input-number
+                    v-model="editForm.discountPrice"
+                    :min="0"
+                    :max="9999"
+                    :precision="2"
+                    :step="10"
+                    placeholder="请输入优惠票价"
+                    controls-position="right"
+                    style="width: 100%"
+                  />
+                </div>
               </el-col>
             </el-row>
           </div>
@@ -956,10 +971,49 @@ onMounted(async () => {
       font-size: 12px;
     }
 
+    .price-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      align-items: center;
+
+      .no-price {
+        color: #909399;
+        font-size: 12px;
+      }
+    }
+
     .pagination-container {
       margin-top: 20px;
       display: flex;
       justify-content: flex-end;
+    }
+
+    .price-setting {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .price-inputs {
+      .price-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .price-label {
+          font-size: 14px;
+          color: #606266;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .price-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
   }
 
