@@ -1,0 +1,88 @@
+# Gitee Go CI/CD 配置 - 前端自动部署
+# 推送到 main 分支时自动构建并部署到腾讯云
+
+name: 前端自动部署
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: 检出代码
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # 设置 Node.js
+      - name: 设置 Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # 安装 pnpm
+      - name: 安装 pnpm
+        run: |
+          npm install -g pnpm@latest
+
+      # 安装依赖
+      - name: 安装依赖
+        run: |
+          pnpm config set registry https://registry.npmmirror.com
+          pnpm install
+
+      # 构建项目
+      - name: 构建项目
+        run: |
+          pnpm build
+        env:
+          NODE_ENV: production
+
+      # 安装 SSH 工具
+      - name: 安装 SSH 工具
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-client sshpass
+
+      # 配置 SSH
+      - name: 配置 SSH
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ secrets.DEPLOY_SERVER }} >> ~/.ssh/known_hosts
+
+      # 清空目标目录
+      - name: 清空目标目录
+        run: |
+          sshpass -p "${{ secrets.DEPLOY_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "powershell -Command \"if (Test-Path '${{ secrets.DEPLOY_PATH_PRODUCTION }}') { Get-ChildItem -Path '${{ secrets.DEPLOY_PATH_PRODUCTION }}' -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue } else { New-Item -ItemType Directory -Path '${{ secrets.DEPLOY_PATH_PRODUCTION }}' -Force }\""
+
+      # 上传文件到服务器
+      - name: 上传文件到服务器
+        run: |
+          echo "开始上传文件到 ${{ secrets.DEPLOY_SERVER }}..."
+          sshpass -p "${{ secrets.DEPLOY_PASSWORD }}" scp -o StrictHostKeyChecking=no -o ConnectTimeout=60 -r dist/* ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }}:"${{ secrets.DEPLOY_PATH_PRODUCTION }}/"
+          echo "文件上传完成！"
+
+      # 健康检查
+      - name: 健康检查
+        run: |
+          echo "检查部署状态..."
+          sshpass -p "${{ secrets.DEPLOY_PASSWORD }}" ssh -o StrictHostKeyChecking=no ${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_SERVER }} "powershell -Command \"if (Test-Path '${{ secrets.DEPLOY_PATH_PRODUCTION }}\index.html') { Write-Host '✅ 部署成功：index.html 存在'; exit 0 } else { Write-Host '❌ 部署失败：index.html 不存在'; exit 1 }\""
+
+      # 部署通知
+      - name: 部署完成
+        run: |
+          echo "=========================================="
+          echo "  🎉 前端部署完成！"
+          echo "=========================================="
+          echo "服务器: ${{ secrets.DEPLOY_SERVER }}"
+          echo "路径: ${{ secrets.DEPLOY_PATH_PRODUCTION }}"
+          echo "=========================================="
