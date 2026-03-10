@@ -171,12 +171,12 @@ const hotLoading = ref(false)
 const upcomingLoading = ref(false)
 const recommendLoading = ref(false)
 
-// 快捷入口
+// 快捷入口 - 使用实际的图标组件
 const quickLinks = [
-  { title: '全部剧目', icon: 'Ticket', color: '#409EFF', path: '/show' },
-  { title: '剧院信息', icon: 'OfficeBuilding', color: '#67C23A', path: '/theater' },
-  { title: '我的订单', icon: 'Calendar', color: '#E6A23C', path: '/order/list' },
-  { title: '个人中心', icon: 'Star', color: '#F56C6C', path: '/user/center' }
+  { title: '全部剧目', icon: Ticket, color: '#409EFF', path: '/show' },
+  { title: '剧院信息', icon: OfficeBuilding, color: '#67C23A', path: '/theater' },
+  { title: '我的订单', icon: Calendar, color: '#E6A23C', path: '/order/list' },
+  { title: '个人中心', icon: Star, color: '#F56C6C', path: '/user/center' }
 ]
 
 // 加载轮播图数据
