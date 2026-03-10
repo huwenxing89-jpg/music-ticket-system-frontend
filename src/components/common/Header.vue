@@ -3,7 +3,7 @@
     <div class="header-container">
       <!-- Logo -->
       <div class="logo" @click="goHome">
-        <img v-if="configStore.logoUrl" :src="configStore.logoUrl" :alt="configStore.siteName" class="logo-img">
+        <img v-if="configStore.logoUrl" :src="configStore.logoUrl" alt="" class="logo-img">
         <h1>{{ configStore.siteName }}</h1>
       </div>
 
