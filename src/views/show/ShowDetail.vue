@@ -86,7 +86,15 @@
               </p>
             </div>
             <div class="session-price">
-              <span class="price">¥{{ session.price }}起</span>
+              <div class="price-tags">
+                <el-tag v-if="session.vipPrice" size="small" type="warning">VIP ¥{{ session.vipPrice }}</el-tag>
+                <el-tag v-if="session.normalPrice" size="small" type="primary">普通 ¥{{ session.normalPrice }}</el-tag>
+                <el-tag v-if="session.studentPrice" size="small" type="success">学生 ¥{{ session.studentPrice }}</el-tag>
+                <el-tag v-if="session.discountPrice" size="small" type="info">优惠 ¥{{ session.discountPrice }}</el-tag>
+              </div>
+              <div class="price-range">
+                <span class="min-price">¥{{ getMinPrice(session) }}起</span>
+              </div>
               <el-button type="primary" @click.stop="selectSession(session)">选座购票</el-button>
             </div>
           </div>
@@ -269,6 +277,19 @@ function formatTime(dateString) {
     minute: '2-digit',
     weekday: 'short'
   })
+}
+
+// 获取最低价格
+function getMinPrice(session) {
+  const prices = []
+  if (session.vipPrice) prices.push(session.vipPrice)
+  if (session.normalPrice) prices.push(session.normalPrice)
+  if (session.studentPrice) prices.push(session.studentPrice)
+  if (session.discountPrice) prices.push(session.discountPrice)
+  if (prices.length > 0) {
+    return Math.min(...prices)
+  }
+  return session.price || '待定'
 }
 
 // 获取封面样式
@@ -667,12 +688,75 @@ onMounted(() => {
             flex-direction: column;
             align-items: flex-end;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
+            min-width: 180px;
 
-            .price {
-              font-size: 20px;
-              font-weight: bold;
-              color: #F56C6C;
+            .price-tags {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 6px;
+              justify-content: flex-end;
+              margin-bottom: 5px;
+
+              .el-tag {
+                font-weight: 600;
+                font-size: 13px;
+                padding: 4px 10px;
+                border-radius: 6px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+                &.el-tag--warning {
+                  background: linear-gradient(135deg, #F6D155 0%, #F5A623 100%);
+                  border: none;
+                  color: white;
+                }
+
+                &.el-tag--primary {
+                  background: linear-gradient(135deg, #409EFF 0%, #3375D9 100%);
+                  border: none;
+                  color: white;
+                }
+
+                &.el-tag--success {
+                  background: linear-gradient(135deg, #67C23A 0%, #529B2E 100%);
+                  border: none;
+                  color: white;
+                }
+
+                &.el-tag--info {
+                  background: linear-gradient(135deg, #909399 0%, #7A7E83 100%);
+                  border: none;
+                  color: white;
+                }
+              }
+            }
+
+            .price-range {
+              .min-price {
+                font-size: 16px;
+                font-weight: 600;
+                color: #606266;
+
+                &::before {
+                  content: '起';
+                  font-size: 14px;
+                  font-weight: normal;
+                  margin-left: 2px;
+                  color: #909399;
+                }
+              }
+            }
+
+            .el-button {
+              width: 100%;
+              border-radius: 8px;
+              font-weight: 500;
+              box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
+
+              &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(64, 158, 255, 0.4);
+              }
             }
           }
         }
