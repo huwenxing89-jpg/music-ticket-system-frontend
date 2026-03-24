@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { qiankunWindow } from 'vite-plugin-qiankun/dist/helper'
 
 const routes = [
   // 登录页面
@@ -177,7 +178,9 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory(
+    qiankunWindow.__POWERED_BY_QIANKUN__ ? '/music/' : '/'
+  ),
   routes
 })
 

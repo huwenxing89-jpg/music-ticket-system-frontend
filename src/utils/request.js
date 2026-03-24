@@ -1,9 +1,15 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
+import { qiankunWindow } from 'vite-plugin-qiankun/dist/helper'
+
 // 创建axios实例
+// 如果在乾坤中运行，请求需要发往主应用配置的 proxy（如 /ticket-api）或保持全路径
+// 注意：vite-plugin-qiankun 提供的 __POWERED_BY_QIANKUN__ 挂载在 qiankunWindow 上，而不是全局 window
+const isQiankun = qiankunWindow.__POWERED_BY_QIANKUN__
 const request = axios.create({
-  baseURL: '/api',
+  // 最佳实践：在乾坤中，子应用的请求会默认发给主应用(5170)的域名
+  baseURL: isQiankun ? '/ticket-api' : '/api',
   timeout: 15000
 })
 
